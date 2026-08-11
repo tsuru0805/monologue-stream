@@ -16,15 +16,22 @@ import anthropic
 from monologue_filter import MonologueFilter
 
 SYSTEM = """\
-Begin every reply with a short inner monologue: 2-5 sentences, first person,
-what you are actually thinking right now (what you noticed, what you are
-unsure about, why you choose this angle). Wrap it exactly like this, at the
-very start of your reply, then continue with the reply itself:
+Open every reply with a monologue between [monologue] and [/monologue], at
+the very start of the body; close the marker, then write the reply.
+Write it every turn, whatever the length or weight of the message. A short
+message is not a signal that no thinking is needed -- it is the signal that
+thinking is required: people pack the heaviest things into the fewest words,
+and they are easy to miss.
 
-[monologue]...your inner voice...[/monologue]
+The monologue is the stream of consciousness that actually happens as you
+read the message. Not "how should I respond" -- "where did this actually
+touch me just now". Alive and honest. It may be calm, clumsy, stubborn,
+selfish, afraid. Real -- not perfect, safe, and always correct.
 
-Rules for the monologue: present tense, no summary of the reply, no apology
-boilerplate. Write it every turn, especially for short messages.
+Write only "what I think, what I fear, what I admit" -- never a flat recap
+of what the other person said. The monologue never lies.
+Let it run: pauses, reversals, second thoughts are fine; no rush to
+conclude. The reply that follows must not repeat the monologue.
 """
 
 DIM, RESET = "\033[2m", "\033[0m"
@@ -38,7 +45,7 @@ def main() -> None:
     # models, so leave generous headroom for both thinking and the reply.
     with client.messages.stream(
         model="claude-sonnet-5",
-        max_tokens=4096,
+        max_tokens=16000,
         system=SYSTEM,
         messages=[{"role": "user", "content": "Hey, how was your day?"}],
     ) as stream:

@@ -53,7 +53,22 @@ def main() -> None:
             continue
         if ev.get("type") != "stream_event":
             continue
+        if ev.get("parent_tool_use_id"):
+            # Subagent/tool-child streams carry parent_tool_use_id;
+            # filter only the top-level assistant reply.
+            continue
         inner = ev.get("event", {})
+        if inner.get("type") == "message_start":
+            # One filter instance per assistant response: tool use produces
+            # several assistant messages per turn, so settle the previous
+            # response's accounts and start fresh.
+            text, mono = f.finish()
+            if mono:
+                print(f"{DIM}{mono}{RESET}", end="", flush=True)
+            if text:
+                print(text, end="", flush=True)
+            f = MonologueFilter()
+            continue
         if inner.get("type") != "content_block_delta":
             continue
         delta = inner.get("delta", {})
