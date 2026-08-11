@@ -10,21 +10,32 @@ leading [monologue] block in body           ──filter──▶ thinking chann
 rest of the body                            ──filter──▶ text channel
 ```
 
-## Why
+## What happened to thinking displays lately
 
-If you build companion apps, roleplay systems, or anything where users should *see* what the AI is thinking, you have probably hit these walls:
+Since late July 2026, the same phenomenon hit every channel (claude.ai, Claude Code, direct API): thinking blocks went from line-by-line reasoning to a one-sentence summary, a single verb, "Thought process is unavailable", or nothing at all. Many concluded the model "got dumber" or "stopped thinking". Unpacked, there are three layers:
 
-- Since the Claude 4 generation, extended thinking is displayed as a **summary** by default — produced by a **different model** that ignores your system prompt, persona, and style ([official docs](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)).
-- Since late July 2026, adaptive-thinking models tightened the display further: thinking blocks collapse into one-line summaries, a single verb, or "Thought process is unavailable" — and some newer models default to **omitting** the thinking display entirely (see the r/ClaudeAI wave, [background](https://claudelog.com/faqs/why-cant-i-see-claude-thinking/)).
-- You pay for the **full** thinking tokens; you see a compressed digest, or nothing. The more the model thinks, the more the display distorts.
+1. **It's a display policy, not vanished reasoning.** Since the Claude 4 generation, extended thinking displays a **summary** by default; newer adaptive-thinking models further default to summarized or **omitted** display. The reasoning still happens and is still billed at **full** thinking-token count — you just don't see it ([official docs](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), [community roundup](https://claudelog.com/faqs/why-cant-i-see-claude-thinking/)).
+2. **The summary is not the model's voice.** It is produced by a **different model** that ignores your system prompt, persona, and style — even when displayed, it is a third party's paraphrase, not your character's inner voice. The more the model thinks, the more the paraphrase distorts.
+3. **There is no client-side switch.** No display mode returns raw chain-of-thought, and nothing lets you turn the summarization off.
 
-These are display-layer policies you cannot turn off from the client. Instead of fighting the display layer, switch channels: **have the model write its visible thinking in the reply body** — the body passes through no summarization or rewriting layer; every character you receive is the model's own, under your prompts. (Hard limits like `max_tokens` still apply, of course — which is why the filter tolerates unclosed, truncated streams; see Features.)
+For companion apps, roleplay systems, and anything where users should *see* what the AI is thinking, these three layers stack up to one fact: the thinking display **is not under your control**. So instead of fighting the display layer, switch channels — **have the model write its visible thinking in its own hand, in the reply body**: the body passes through no summarization or rewriting layer, and always obeys your prompts.
 
-We have run this in our private companion system since 2026-07-10, sat through the late-July display tightening, and our thinking display was untouched.
+## What this solves — and what it doesn't
 
-## An honest note
+Solves:
 
-The monologue is **not** recovered chain-of-thought. It is visible introspection the model writes in-context, in-character, with its own pen — not the raw internal reasoning. But it comes from the *same* model, under *your* system prompt and style, whereas the official thinking summary comes from a *different* model that ignores all of it. For companion and RP use, an authored inner voice is usually much closer to what you actually want than a third party's paraphrase of the reasoning.
+- ✅ **Display stability** — the monologue travels in the text channel, untouched by any thinking-display policy. However the provider tightens the display, your thinking chain keeps arriving token by token. We have run this in our private companion system since 2026-07-10, sat through the late-July tightening, zero impact.
+- ✅ **The voice comes home** — the thinking chain is written by the *same* model, in character, under *your* system prompt and style.
+- ✅ **Live streaming** — the monologue reaches the thinking channel as it is generated, not parsed after the fact.
+- ✅ **A designable experience** — length, tone, and format of the thinking are all governed by your prompt.
+
+Doesn't solve (honest boundaries):
+
+- ❌ **It cannot recover the hidden raw CoT** — the monologue is visible introspection the model writes in-context for humans to read, not the internal reasoning transcript.
+- ❌ **It does not change actual reasoning depth** — how hard the model thinks is set by thinking budget / effort, independent of display; the "the model really did get dumber" class of complaints is out of scope here.
+- ❌ **It cannot bypass hard limits** — `max_tokens` cutoffs and dropped streams still happen (the filter only guarantees that monologue already written is never lost on truncation; see Features).
+
+For companion and RP use, an authored inner voice is usually much closer to what you actually want than a third party's paraphrase of the reasoning — just be clear about which one you are getting.
 
 ## Features
 
@@ -74,6 +85,20 @@ then start the reply proper.
 ```
 
 The blockquote/italics play the role of the collapsed thinking chain.
+
+## Production recipe: streaming that survives tab switches
+
+People avoid streaming for two reasons: slow first tokens, and half a reply lost the moment they switch pages or lock the screen. Both have fixes, and both compose naturally with this approach:
+
+**The anti-interruption key: never tie the generation lifetime to the client connection.** What we do in production:
+
+- **Generation completes server-side** — the model's stream is consumed by a server-side generation loop (this filter lives there), persisting as it goes; the SSE/WebSocket feed to the frontend is only a *live view*.
+- **Disconnect ≠ abort** — switching pages, locking the screen, or losing network kills the live view, not the generation. The server finishes writing and persists as usual (monologue into the thinking field, body into the content field — the split itself is persisted).
+- **Switch back, see it all** — on return, in-flight turns re-attach to the stream; completed turns render whole from the database. The user's perception: "it kept writing while I was away; it's there when I'm back."
+
+Worst case (network too bad for any live view) degrades to *non-streaming*, never to *half a message*. The liveness of streaming becomes pure upside.
+
+**The slow-first-token remedy: the monologue itself.** Because the block sits at the very start of the reply, the first second of the stream already has content moving — the user watches the model *think* instead of staring at a spinner. The thinking chain turns from an amputated feature into the layer that fills the wait.
 
 ## Prompt guide
 
