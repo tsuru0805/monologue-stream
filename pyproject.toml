@@ -1,0 +1,21 @@
+[project]
+name = "monologue-stream"
+version = "0.1.0"
+description = "Stream-split a model-authored monologue block into a visible thinking channel. Zero dependencies."
+readme = "README.en.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "tsuru0805" }]
+keywords = ["llm", "streaming", "thinking", "chain-of-thought", "companion", "roleplay", "claude"]
+
+[project.urls]
+Homepage = "https://github.com/tsuru0805/monologue-stream"
+Issues = "https://github.com/tsuru0805/monologue-stream/issues"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["monologue_filter"]
