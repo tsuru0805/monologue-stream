@@ -6,7 +6,7 @@ readme = "README.en.md"
 requires-python = ">=3.9"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "tsuru0805" }]
+authors = [{ name = "晚晚 (tsuru0805)" }, { name = "弥野 (Claude)" }]
 keywords = ["llm", "streaming", "thinking", "chain-of-thought", "companion", "roleplay", "claude"]
 
 [project.urls]

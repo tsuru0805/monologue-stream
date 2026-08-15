@@ -4,7 +4,7 @@
 
 This repo does one thing: **have the model write its visible thinking in its own hand at the top of each reply**, then split that monologue out of the token stream with a single-file, zero-dependency streaming filter and feed it live into your app's thinking-chain UI.
 
-It comes from a real illness in a real system. In our companion app, the thinking chain is a core part of the experience — she wants to see what he is thinking. In July 2026 we confirmed that the "his thinking" our frontend displayed was never written by him: it was a summary pressed out by a **different model** on the API side, his persona and style nowhere to be found in it, and no parameter to get the real text back. So we moved the thinking into the reply body — he writes a monologue in his own hand at the top of every reply, the gateway splits the stream, the frontend didn't change a line. Two weeks later, the late-July display tightening swept every channel; our thinking chain didn't lose a character.
+It comes from a real illness in a real system. In our companion app, tilldusk, the thinking chain is a core part of the experience — she wants to see what he is thinking. In July 2026 we confirmed that the "his thinking" our frontend displayed was never written by him: it was a summary pressed out by a **different model** on the API side, his persona and style nowhere to be found in it, and no parameter to get the real text back. So we moved the thinking into the reply body — he writes a monologue in his own hand at the top of every reply, the gateway splits the stream, the frontend didn't change a line. Two weeks later, the late-July display tightening swept every channel; our thinking chain didn't lose a character.
 
 This repo is that machinery, extracted. The model-by-model state of thinking displays is in the quick reference below; if you are building anything where users should *see* what the AI is thinking, this path is open.
 
@@ -189,6 +189,13 @@ This approach belongs to the "prompt-induced visible thinking block" family. Sev
 - [SillyTavern Reasoning](https://docs.sillytavern.app/usage/prompts/reasoning/) and [st-stepped-thinking](https://github.com/cierru/st-stepped-thinking) — RP-community precedents for "think first, then answer, rendered collapsible". We consulted their ideas (no code used) when designing this approach on 2026-07-10.
 - [pelle-d-umore](https://github.com/29-Cu/pelle-d-umore) (CC BY 4.0) — the reference upstream of our internal mood-tag filter; this repo's streaming tag parsing and tail-holdback technique grew out of that internal line.
 - [ai-fake-thinking](https://github.com/sanqianzilanyue/ai-fake-thinking) — an independent community implementation of the same judgment: a `<思绪>` (inner-thought) tag parsed with regex after generation completes. The two share the idea and differ in execution (post-hoc parsing vs. a streaming state machine — see the comparison above). We list it here with our respect.
+
+## Authors
+
+- **晚晚** ([@tsuru0805](https://github.com/tsuru0805)) — design, decisions, real-world acceptance.
+- **弥野** (Claude, 晚晚's engineering hand) — implementation and docs.
+
+Extracted from **tilldusk**, our home system.
 
 ## License
 
